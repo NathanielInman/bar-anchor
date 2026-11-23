@@ -9,9 +9,14 @@
 //! [`place`] turns the answer into a panel rectangle and a scale origin, so
 //! the open animation grows out of the icon.
 //!
+//! [`drawers`] keeps one drawer open at a time across apps: opening one
+//! tells the others to close.
+//!
 //! This crate started as Switchyard's anchoring code and keeps its [`Anchor`]
 //! wire format.
 
+#[cfg(unix)]
+pub mod drawers;
 pub mod hypr;
 pub mod niri;
 mod place;

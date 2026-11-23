@@ -20,7 +20,7 @@ its own copy; by November 2026 there were four versions of it.
 
 ```toml
 [dependencies]
-bar-anchor = { git = "https://github.com/NathanielInman/bar-anchor", tag = "v0.1.0" }
+bar-anchor = { git = "https://github.com/NathanielInman/bar-anchor", tag = "v0.2.0" }
 ```
 
 ```rust
@@ -30,6 +30,26 @@ let anchor = bar_anchor::anchor("tannoy", bar_anchor::BarHint::default(), false)
 // The screen's size, the panel's size and the gap to keep from the bar.
 let (rect, origin) = bar_anchor::place(anchor.as_ref(), screen_w, screen_h, 420.0, 360.0, 8.0);
 ```
+
+## One drawer at a time
+
+`drawers` keeps one drawer open across all the apps. Each drawer process
+listens on `$XDG_RUNTIME_DIR/bar-anchor/drawers/<name>.sock`, and a drawer
+that opens writes `hide` to every other socket there. It doesn't matter
+which app the open drawer belongs to or how the new one opened (a lamp, a
+key, the command line), and there is no list of apps to keep up to date.
+
+```rust
+// At startup, on the board's main loop side:
+let _listener = bar_anchor::drawers::listen("tannoy", move || {
+    let _ = tx.send_blocking(Msg::OtherDrawerOpened); // then hide() on the UI thread
+})?;
+// In show(), when the drawer was closed:
+bar_anchor::drawers::opened("tannoy");
+```
+
+The message is one line, `hide\n`, so an app in another language can take
+part in a few lines (Signal Box does, in Go).
 
 The `Anchor` JSON is the wire format Switchyard started with, so a panel
 process can take it on its command line from the bar's process.
